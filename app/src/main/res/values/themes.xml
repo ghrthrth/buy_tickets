@@ -1,0 +1,31 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.Buy_tickets" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">#FF5722</item> <!-- Основной цвет -->
+        <item name="colorPrimaryVariant">#E64A19</item> <!-- Вариация основного цвета -->
+        <item name="colorOnPrimary">@color/white</item> <!-- Цвет текста на основном цвете -->
+
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">#FFCCBC</item> <!-- Вторичный цвет -->
+        <item name="colorSecondaryVariant">#FFAB91</item> <!-- Вариация вторичного цвета -->
+        <item name="colorOnSecondary">@color/black</item> <!-- Цвет текста на вторичном цвете -->
+
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+
+        <!-- Custom font -->
+        <item name="android:fontFamily">@font/custom_font</item> <!-- Использование кастомного шрифта -->
+
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style name="Theme.Buy_tickets.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.Buy_tickets.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.Buy_tickets.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+</resources>

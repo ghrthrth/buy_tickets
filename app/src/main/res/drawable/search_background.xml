@@ -1,0 +1,7 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="50dp"/>  <!-- Овальная форма -->
+    <solid android:color="#FFFFFF"/>  <!-- Сиреневый цвет (Lavender) -->
+    <padding android:left="10dp" android:right="10dp"/>
+</shape>
+

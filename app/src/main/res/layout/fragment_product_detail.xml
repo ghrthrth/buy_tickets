@@ -1,0 +1,70 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_color"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:background="@drawable/custom_background"
+        android:gravity="center">
+
+        <!-- Квадратное изображение товара -->
+        <ImageView
+            android:id="@+id/product_image"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/square_shape"
+            android:padding="8dp"
+            android:elevation="8dp"
+            android:contentDescription="@string/product_image_description" />
+
+        <!-- Заголовок (центрированный, другой шрифт и цвет) -->
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/custom_font"
+            android:textColor="@color/title_color"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:text="@string/product_title" />
+
+        <!-- Описание (с другим шрифтом и цветом) -->
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:fontFamily="@font/custom_font"
+            android:textColor="@color/description_color"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:lineSpacingExtra="8dp"
+            android:text="@string/product_description" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_appointment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Записаться"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/gradient_button_background"
+        android:backgroundTint="@null"
+        android:textColor="@color/button_text_color"
+        android:textSize="18sp"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="12dp"
+        android:drawableStart="@drawable/ic_calendar"
+        android:drawablePadding="8dp"
+        android:gravity="center"
+        android:elevation="4dp" />
+
+    </LinearLayout>
+</ScrollView>
