@@ -48,6 +48,8 @@ class ImageAdapter(
 
         Picasso.get().load(photoUrl).into(holder.imageView)
         holder.titleTextView.text = title
+        holder.titleDescription.text = description
+
 
         holder.itemView.setOnClickListener {
             listener?.onItemClick(position) // Передаем позицию напрямую
@@ -59,8 +61,9 @@ class ImageAdapter(
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageView: ImageView = itemView.findViewById(R.id.grid_image)
-        val titleTextView: TextView = itemView.findViewById(R.id.title_text_view)
+        val imageView: ImageView = itemView.findViewById(R.id.service_image)
+        val titleTextView: TextView = itemView.findViewById(R.id.service_title)
+        val titleDescription: TextView = itemView.findViewById(R.id.service_description)
         // val descriptionTextView: TextView = itemView.findViewById(R.id.description_text_view)
     }
 

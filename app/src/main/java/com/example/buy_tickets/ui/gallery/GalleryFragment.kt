@@ -133,7 +133,7 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
             if (binding == null) return@runOnUiThread
 
             val recyclerView = binding?.recyclerView // Используем безопасный вызов
-            recyclerView?.layoutManager = GridLayoutManager(context, 3)
+            recyclerView?.layoutManager = GridLayoutManager(context, 1)
 
             adapter = ImageAdapter(requireContext(), photoUrls, titles, descriptions)
             recyclerView?.adapter = adapter
