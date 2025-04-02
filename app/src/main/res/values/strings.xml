@@ -16,4 +16,5 @@
     <string name="product_title">Название Услуги</string>
     <string name="product_description">Описание услуги</string>
     <string name="button_appointment_text">Записаться</string>
+    <string name="default_web_client_id">420738209399-8n4787012h5j70j5b67a4aedacugerp9.apps.googleusercontent.com</string>
 </resources>

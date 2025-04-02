@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -11,6 +13,11 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <!-- Для Firebase Auth -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -20,18 +27,49 @@
         android:roundIcon="@drawable/app"
         android:supportsRtl="true"
         android:theme="@style/Theme.Buy_tickets"
+        android:name=".App"
         tools:targetApi="31">
+
+        <!-- Главная активность -->
         <activity
-            android:name=".MainActivity"
+            android:name=".AuthActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.Buy_tickets.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Buy_tickets.NoActionBar"/>
+
+        <!-- Активити для входа по email -->
+        <activity
+            android:name=".EmailLoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Buy_tickets.NoActionBar" />
+
+        <!-- Активити для регистрации по email -->
+        <activity
+            android:name=".EmailRegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Buy_tickets.NoActionBar" />
+
+        <!-- Сервис для Firebase (если используется) -->
+        <service
+            android:name="com.google.firebase.components.ComponentDiscoveryService"
+            android:exported="false">
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.auth.FirebaseAuthRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.database.FirebaseDatabaseRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+        </service>
+
     </application>
 
 </manifest>

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "420738209399",
+    "firebase_url": "https://buy-tickets-474b3-default-rtdb.firebaseio.com",
+    "project_id": "buy-tickets-474b3",
+    "storage_bucket": "buy-tickets-474b3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:420738209399:android:70a716bb1146e186bfd872",
+        "android_client_info": {
+          "package_name": "com.example.buy_tickets"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "420738209399-7iiiqn11p6s40g6b0hk5qmbom1j2nb1p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.buy_tickets",
+            "certificate_hash": "073f8294a1dfd0fec115247f2dca805b1d0e8924"
+          }
+        },
+        {
+          "client_id": "420738209399-8n4787012h5j70j5b67a4aedacugerp9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClRqPv9b_zAA6wwmIU5kDC6wiYjgLT7YA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "420738209399-8n4787012h5j70j5b67a4aedacugerp9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
