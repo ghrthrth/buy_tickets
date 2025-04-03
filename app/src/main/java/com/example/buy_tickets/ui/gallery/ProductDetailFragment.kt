@@ -1,8 +1,7 @@
 package com.example.buy_tickets.ui.gallery
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.SharedPreferences
-import android.os.AsyncTask
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,32 +9,32 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
-import androidx.annotation.NonNull
-import androidx.annotation.Nullable
 import com.example.buy_tickets.R
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.squareup.picasso.Picasso
-import okhttp3.MediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import java.io.IOException
+import com.yandex.mapkit.Animation
+import com.yandex.mapkit.MapKitFactory
+import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.map.CameraPosition
+import com.yandex.mapkit.mapview.MapView
+import com.yandex.runtime.image.ImageProvider
 
 class ProductDetailFragment(
     private val context: Context,
     private val id: Int,
     private val title: String,
     private val description: String,
-    private val imageUrl: String
+    private val imageUrl: String,
+    private val latitude: Double,
+    private val longitude: Double
 ) : BottomSheetDialogFragment() {
 
+    private var mapView: MapView? = null
     private var onProductDeletedListener: OnProductDeletedListener? = null
 
-    fun setOnProductDeletedListener(listener: OnProductDeletedListener) {
-        this.onProductDeletedListener = listener
-    }
-
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -43,25 +42,89 @@ class ProductDetailFragment(
     ): View? {
         val view = inflater.inflate(R.layout.fragment_product_detail, container, false)
 
-        val sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-        val userLogin = sharedPreferences.getString("login", "") // Получаем логин пользователя
-
+        // Инициализация View-элементов
         val imageView = view.findViewById<ImageView>(R.id.product_image)
         val titleTextView = view.findViewById<TextView>(R.id.title)
         val descriptionTextView = view.findViewById<TextView>(R.id.description)
         val addToCartButton = view.findViewById<Button>(R.id.button_appointment)
+        mapView = view.findViewById(R.id.mapview)
+
+        // Установка данных
         Picasso.get().load(imageUrl).into(imageView)
         titleTextView.text = "Название услуги: $title"
         descriptionTextView.text = "Описание услуги: $description"
 
+        // Настройка обработки касаний
+        mapView?.apply {
+            // Разрешаем карте обрабатывать все касания
+            (parent as? ViewGroup)?.requestDisallowInterceptTouchEvent(true)
+        }
+
+        view.setOnTouchListener { _, event ->
+            mapView?.dispatchTouchEvent(event) ?: false
+            true
+        }
+
+        // Настройка карты
+        mapView?.getMap()?.let { map ->
+            val point = Point(latitude, longitude)
+            val placemark = map.mapObjects.addPlacemark(point)
+            placemark.setIcon(ImageProvider.fromResource(requireContext(), R.drawable.pin_green))
+
+            map.move(
+                CameraPosition(point, 14.0f, 0.0f, 0.0f),
+                Animation(Animation.Type.SMOOTH, 1f),
+                null
+            )
+        }
+
+        // Настройка BottomSheet
+        dialog?.setOnShowListener { dialogInterface ->
+            val bottomSheet = (dialogInterface as BottomSheetDialog).findViewById<View>(
+                com.google.android.material.R.id.design_bottom_sheet
+            )
+            bottomSheet?.let {
+                val behavior = BottomSheetBehavior.from(it)
+                behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+                    override fun onStateChanged(bottomSheet: View, newState: Int) {
+                        if (newState == BottomSheetBehavior.STATE_DRAGGING) {
+                            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                        }
+                    }
+
+                    override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+                })
+            }
+        }
+
+        addToCartButton.setOnClickListener {
+            // Обработка нажатия кнопки
+        }
 
         return view
     }
 
+    override fun onStart() {
+        super.onStart()
+        MapKitFactory.getInstance().onStart()
+        mapView?.onStart()
+    }
 
+    override fun onStop() {
+        mapView?.onStop()
+        MapKitFactory.getInstance().onStop()
+        super.onStop()
+    }
 
+    fun setOnProductDeletedListener(listener: OnProductDeletedListener) {
+        this.onProductDeletedListener = listener
+    }
 
     interface OnProductDeletedListener {
         fun onProductDeleted(productId: Int)
+    }
+
+    companion object {
+        const val TAG = "ProductDetailFragment"
     }
 }

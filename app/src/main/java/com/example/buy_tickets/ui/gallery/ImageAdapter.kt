@@ -1,9 +1,6 @@
-
-
 package com.example.buy_tickets.ui.gallery
 
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,11 +17,15 @@ class ImageAdapter(
     private val photoUrls: List<String>,
     private val titles: List<String>,
     private val descriptions: List<String>,
+    private val latitudes: List<Double>,
+    private val longitudes: List<Double>
 ) : RecyclerView.Adapter<ImageAdapter.ViewHolder>(), Filterable {
 
     private var filteredPhotoUrls = ArrayList(photoUrls)
     private var filteredTitles = ArrayList(titles)
     private var filteredDescriptions = ArrayList(descriptions)
+    private var filteredLatitudes = ArrayList(latitudes)
+    private var filteredLongitudes = ArrayList(longitudes)
 
     private var listener: OnItemClickListener? = null
 
@@ -42,34 +43,34 @@ class ImageAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val photoUrl = filteredPhotoUrls[position]
-        val title = filteredTitles[position]
-        val description = filteredDescriptions[position]
-
-        Picasso.get().load(photoUrl).into(holder.imageView)
-        holder.titleTextView.text = title
-        holder.titleDescription.text = description
-
+        Picasso.get().load(filteredPhotoUrls[position]).into(holder.imageView)
+        holder.titleTextView.text = filteredTitles[position]
+        holder.titleDescription.text = filteredDescriptions[position]
 
         holder.itemView.setOnClickListener {
-            listener?.onItemClick(position) // Передаем позицию напрямую
+            listener?.onItemClick(position)
         }
     }
 
-    override fun getItemCount(): Int {
-        return filteredTitles.size
-    }
+    override fun getItemCount(): Int = filteredTitles.size
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.service_image)
         val titleTextView: TextView = itemView.findViewById(R.id.service_title)
         val titleDescription: TextView = itemView.findViewById(R.id.service_description)
-        // val descriptionTextView: TextView = itemView.findViewById(R.id.description_text_view)
     }
 
-
-
     override fun getFilter(): Filter {
-        TODO("Not yet implemented")
+        return object : Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val results = FilterResults()
+                // Implement your filtering logic here
+                return results
+            }
+
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                // Update filtered lists and notify adapter
+            }
+        }
     }
 }

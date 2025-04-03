@@ -48,6 +48,11 @@
             android:gravity="center"
             android:lineSpacingExtra="8dp"
             android:text="@string/product_description" />
+        <com.yandex.mapkit.mapview.MapView
+            android:id="@+id/mapview"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"/>
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button_appointment"
@@ -65,6 +70,8 @@
         android:drawablePadding="8dp"
         android:gravity="center"
         android:elevation="4dp" />
+
+
 
     </LinearLayout>
 </ScrollView>

@@ -2,21 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Добавьте эти разрешения для Yandex Maps -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false" />
-
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.CALL_PHONE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-
-    <!-- Для Firebase Auth -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <application
         android:allowBackup="true"
@@ -30,7 +27,12 @@
         android:name=".App"
         tools:targetApi="31">
 
-        <!-- Главная активность -->
+        <!-- Добавьте эту мета-данную для Yandex Maps -->
+        <meta-data
+            android:name="com.yandex.maps.mobile.apikey"
+            android:value="9b7f6f55-badb-4fa7-8f81-680640b868c3" />
+
+        <!-- Остальные активности -->
         <activity
             android:name=".AuthActivity"
             android:exported="true"
@@ -46,19 +48,16 @@
             android:exported="false"
             android:theme="@style/Theme.Buy_tickets.NoActionBar"/>
 
-        <!-- Активити для входа по email -->
         <activity
             android:name=".EmailLoginActivity"
             android:exported="false"
             android:theme="@style/Theme.Buy_tickets.NoActionBar" />
 
-        <!-- Активити для регистрации по email -->
         <activity
             android:name=".EmailRegisterActivity"
             android:exported="false"
             android:theme="@style/Theme.Buy_tickets.NoActionBar" />
 
-        <!-- Сервис для Firebase (если используется) -->
         <service
             android:name="com.google.firebase.components.ComponentDiscoveryService"
             android:exported="false">
@@ -69,7 +68,5 @@
                 android:name="com.google.firebase.components:com.google.firebase.database.FirebaseDatabaseRegistrar"
                 android:value="com.google.firebase.components.ComponentRegistrar" />
         </service>
-
     </application>
-
 </manifest>
