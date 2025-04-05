@@ -81,6 +81,40 @@
                         android:textColor="#FF5722" />
                 </com.google.android.material.textfield.TextInputLayout>
 
+
+
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/addressInputLayout"
+                    style="@style/RoundedTextInputLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="Адрес услуги"
+                    app:boxStrokeColor="#FF5722"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/descriptionsInputLayout"
+                    app:layout_constraintWidth_percent="0.9">
+
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/address"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:fontFamily="@font/custom_font"
+                        android:textColor="#FF5722"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:inputType="textAutoComplete|textNoSuggestions"
+                        android:completionThreshold="1"
+                        android:dropDownHeight="300dp"
+                        android:dropDownWidth="match_parent"
+                        android:imeOptions="actionDone"
+                        />
+                </com.google.android.material.textfield.TextInputLayout>
+
+
+
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/selectPhotos"
                     android:layout_width="271dp"
@@ -99,7 +133,7 @@
                     android:textSize="18sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/descriptionsInputLayout"
+                    app:layout_constraintTop_toBottomOf="@id/addressInputLayout"
                     app:layout_constraintWidth_percent="0.6" />
 
                 <com.google.android.material.button.MaterialButton

@@ -3,14 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Добавьте эти разрешения для Yandex Maps -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
-
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false" />
@@ -27,11 +27,9 @@
         android:name=".App"
         tools:targetApi="31">
 
-        <!-- Добавьте эту мета-данную для Yandex Maps -->
         <meta-data
-            android:name="com.yandex.maps.mobile.apikey"
-            android:value="9b7f6f55-badb-4fa7-8f81-680640b868c3" />
-
+            android:name="com.yandex.mapkit.apikey"
+            android:value="00e2eb94-f74d-4aa4-9efd-62ea524b38fb" />
         <!-- Остальные активности -->
         <activity
             android:name=".AuthActivity"

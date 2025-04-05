@@ -9,9 +9,14 @@ import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
@@ -20,15 +25,36 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.buy_tickets.R
 import com.example.buy_tickets.databinding.FragmentCreateServicesBinding
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import com.google.android.material.textfield.TextInputEditText
+import com.yandex.mapkit.MapKitFactory
+import com.yandex.mapkit.geometry.BoundingBox
+import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.search.SearchFactory
+import com.yandex.mapkit.search.SearchManager
+import com.yandex.mapkit.search.SearchManagerType
+import com.yandex.mapkit.search.SuggestItem
+import com.yandex.mapkit.search.SuggestOptions
+import com.yandex.mapkit.search.SuggestResponse
+import com.yandex.mapkit.search.SuggestSession
+import com.yandex.mapkit.search.SuggestType
+import com.yandex.runtime.Error
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import java.io.File
 import java.io.IOException
+import java.util.Timer
+import java.util.TimerTask
 
 class CreateServicesFragment : Fragment() {
 
     private val REQUEST_CODE_PICK_IMAGE = 1
     private val REQUEST_CODE_PERMISSION = 2
+
+
+    private lateinit var searchManager: SearchManager
+    private lateinit var suggestSession: SuggestSession
+    private lateinit var addressEditText: TextInputEditText
 
     private val client = OkHttpClient()
 
@@ -36,6 +62,10 @@ class CreateServicesFragment : Fragment() {
 
     private var _binding: FragmentCreateServicesBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var addressAutoComplete: MaterialAutoCompleteTextView // Измените тип
+
+// В onCreateView:
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,6 +81,18 @@ class CreateServicesFragment : Fragment() {
         val description = binding.description
         val send = binding.send
         val selectPhoto = binding.selectPhotos
+
+        addressAutoComplete = binding.address as MaterialAutoCompleteTextView
+
+        Log.d("YandexSuggest", "addressAutoComplete: ${addressAutoComplete.id}")
+
+        SearchFactory.getInstance()
+        searchManager = SearchFactory.getInstance().createSearchManager(SearchManagerType.COMBINED)
+        suggestSession = searchManager.createSuggestSession()
+        // Инициализация поискового менеджера
+        searchManager = SearchFactory.getInstance().createSearchManager(SearchManagerType.COMBINED)
+        suggestSession = searchManager.createSuggestSession()
+        setupAddressSuggestions()
 
         selectPhoto.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -75,6 +117,92 @@ class CreateServicesFragment : Fragment() {
         }
 
         return root
+    }
+
+
+
+    private fun setupAddressSuggestions() {
+        addressAutoComplete.threshold = 1 // Show suggestions after 1 character
+
+        addressAutoComplete.addTextChangedListener(object : TextWatcher {
+            private var timer: Timer? = null
+            private val DELAY = 500L // Increased delay to 500ms
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                timer?.cancel()
+                timer = Timer().apply {
+                    schedule(object : TimerTask() {
+                        override fun run() {
+                            activity?.runOnUiThread {
+                                if (!s.isNullOrEmpty() && s.length >= 1) { // Changed to >= 1
+                                    fetchSuggestions(s.toString())
+                                }
+                            }
+                        }
+                    }, DELAY)
+                }
+            }
+        })
+    }
+
+    private fun fetchSuggestions(query: String) {
+        Log.d("YandexSuggest", "Fetching suggestions for: $query")
+
+        val boundingBox = BoundingBox(
+            Point(-90.0, -180.0), // Whole world
+            Point(90.0, 180.0)
+        )
+
+        val suggestOptions = SuggestOptions().apply {
+            setSuggestTypes(SuggestType.GEO.value or SuggestType.BIZ.value)
+            userPosition = Point(55.751244, 37.618423) // Center of Moscow
+        }
+
+        suggestSession.suggest(
+            query,
+            boundingBox,
+            suggestOptions,
+            object : SuggestSession.SuggestListener {
+                override fun onResponse(response: SuggestResponse) {
+                    Log.d("YandexSuggest", "Response received")
+                    activity?.runOnUiThread {
+                        showSuggestions(response.items)
+                    }
+                }
+
+                override fun onError(error: Error) {
+                    Log.e("YandexSuggest", "API Error: ${error}")
+                    activity?.runOnUiThread {
+                        // Handle error if needed
+                    }
+                }
+            })
+    }
+
+    private fun showSuggestions(suggestItems: List<SuggestItem>) {
+        // Extract display texts from suggest items
+        val suggestions = suggestItems.map { it.displayText }
+        Log.d("YandexSuggest", "Suggestions to show: $suggestions")
+
+        if (suggestions.isNotEmpty()) {
+            val adapter = ArrayAdapter(
+                requireActivity(),
+                android.R.layout.simple_dropdown_item_1line,
+                suggestions
+            )
+            addressAutoComplete.setAdapter(adapter)
+
+            // Show dropdown if there are suggestions
+            addressAutoComplete.post {
+                addressAutoComplete.showDropDown()
+                Log.d("YandexSuggest", "Dropdown shown with ${suggestions.size} items")
+            }
+        } else {
+            Log.d("YandexSuggest", "No suggestions to show")
+        }
     }
 
     private fun openGallery() {
@@ -105,7 +233,6 @@ class CreateServicesFragment : Fragment() {
 
         override fun onPreExecute() {
             super.onPreExecute()
-            binding.loadingOverlay.visibility = View.VISIBLE
             binding.send.isEnabled = false
         }
 
@@ -143,7 +270,6 @@ class CreateServicesFragment : Fragment() {
         }
 
         override fun onPostExecute(result: String) {
-            binding.loadingOverlay.visibility = View.GONE
             binding.send.isEnabled = true
 
             if (result.contains("Error")) {
@@ -162,5 +288,15 @@ class CreateServicesFragment : Fragment() {
         super.onDestroyView()
         _binding = null
         client.dispatcher.cancelAll()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        MapKitFactory.getInstance().onStart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        MapKitFactory.getInstance().onStop()
     }
 }
