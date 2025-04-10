@@ -1,0 +1,94 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:layout_marginTop="8dp">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="@drawable/card_background">
+
+        <!-- Заголовок -->
+        <TextView
+            android:id="@+id/TITLE_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Заголовок"
+            android:textSize="18sp"
+            android:textColor="#333333"
+            android:layout_marginBottom="8dp"
+            android:textStyle="bold"/>
+
+        <!-- Имя -->
+        <TextView
+            android:id="@+id/NAME_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Имя"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            android:layout_below="@id/TITLE_text_view"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Фамилия -->
+        <TextView
+            android:id="@+id/SURNAME_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Фамилия"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            android:layout_below="@id/NAME_text_view"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Телефон -->
+        <TextView
+            android:id="@+id/PHONE_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Телефон"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            android:layout_below="@id/SURNAME_text_view"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Дата -->
+        <TextView
+            android:id="@+id/DATE_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Дата"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            android:layout_below="@id/PHONE_text_view"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Время -->
+        <TextView
+            android:id="@+id/TIME_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Время"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            android:layout_below="@id/DATE_text_view"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Количество товара -->
+        <TextView
+            android:id="@+id/PRODUCT_QUANTITY_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Количество"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            android:layout_below="@id/TIME_text_view"
+            android:layout_marginBottom="4dp"/>
+
+    </RelativeLayout>
+
+</LinearLayout>

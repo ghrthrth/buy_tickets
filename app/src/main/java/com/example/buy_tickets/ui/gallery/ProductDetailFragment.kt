@@ -2,6 +2,7 @@ package com.example.buy_tickets.ui.gallery
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -34,6 +35,8 @@ class ProductDetailFragment(
     private var mapView: MapView? = null
     private var onProductDeletedListener: OnProductDeletedListener? = null
 
+    private var onProductBuyListener: OnProductBuyListener? = null
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,7 +49,7 @@ class ProductDetailFragment(
         val imageView = view.findViewById<ImageView>(R.id.product_image)
         val titleTextView = view.findViewById<TextView>(R.id.title)
         val descriptionTextView = view.findViewById<TextView>(R.id.description)
-        val addToCartButton = view.findViewById<Button>(R.id.button_appointment)
+        val appointmentButton = view.findViewById<Button>(R.id.button_appointment)
         mapView = view.findViewById(R.id.mapview)
 
         // Установка данных
@@ -60,8 +63,12 @@ class ProductDetailFragment(
             (parent as? ViewGroup)?.requestDisallowInterceptTouchEvent(true)
         }
 
-        view.setOnTouchListener { _, event ->
-            mapView?.dispatchTouchEvent(event) ?: false
+        view.setOnTouchListener { v, event ->
+            val rect = Rect()
+            appointmentButton.getGlobalVisibleRect(rect)
+            if (!rect.contains(event.rawX.toInt(), event.rawY.toInt())) {
+                mapView?.dispatchTouchEvent(event)
+            }
             true
         }
 
@@ -97,8 +104,8 @@ class ProductDetailFragment(
             }
         }
 
-        addToCartButton.setOnClickListener {
-            // Обработка нажатия кнопки
+        appointmentButton.setOnClickListener {
+            onProductBuyListener?.onProductBuy(id.toString(), title)
         }
 
         return view
@@ -120,8 +127,16 @@ class ProductDetailFragment(
         this.onProductDeletedListener = listener
     }
 
+    fun setOnProductBuyListener(listeners: OnProductBuyListener) {
+        this.onProductBuyListener = listeners
+    }
+
     interface OnProductDeletedListener {
         fun onProductDeleted(productId: Int)
+    }
+
+    fun interface OnProductBuyListener {
+        fun onProductBuy(productId: String, productName: String)
     }
 
     companion object {

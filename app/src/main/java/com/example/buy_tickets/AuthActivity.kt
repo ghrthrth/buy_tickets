@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.buy_tickets.databinding.ActivityAuthBinding
+import com.example.buy_tickets.ui.user.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -112,6 +113,11 @@ class AuthActivity : AppCompatActivity() {
         user?.let {
             Log.d(TAG, "signInWithCredential:success")
             saveUserToDatabase(user)
+
+            // Сохраняем данные пользователя в SharedPreferences
+            val userPrefs = UserPreferences(this)
+            userPrefs.saveUserData(user.uid, user.email ?: user.displayName ?: "Anonymous")
+
             startMainActivity()
         }
     }

@@ -6,8 +6,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.buy_tickets.databinding.ActivityMainBinding
+import com.example.buy_tickets.ui.applications.ApplicationsFragment
 import com.example.buy_tickets.ui.create_services.CreateServicesFragment
 import com.example.buy_tickets.ui.gallery.GalleryFragment
+import com.example.buy_tickets.ui.user.UserPreferences
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -37,6 +39,15 @@ class MainActivity : AppCompatActivity() {
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        // Проверка авторизации
+        val auth = FirebaseAuth.getInstance()
+        val userPrefs = UserPreferences(this)
+
+        if (auth.currentUser == null || userPrefs.getUserId() == null) {
+            redirectToAuth()
+            return
+        }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -71,9 +82,12 @@ class MainActivity : AppCompatActivity() {
         // 1. Выход из Firebase
         FirebaseAuth.getInstance().signOut()
 
-        // 2. Выход из Google
+        // 2. Очищаем SharedPreferences
+        UserPreferences(this).clearUserData()
+
+        // 3. Выход из Google
         googleSignInClient.signOut().addOnCompleteListener(this) {
-            // 3. Перенаправление на экран авторизации
+            // 4. Перенаправление на экран авторизации
             redirectToAuth()
         }.addOnFailureListener {
             // Если выход из Google не удался, все равно перенаправляем
@@ -93,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         fragmentMap.apply {
             put(R.id.nav_create_service, CreateServicesFragment())
             put(R.id.nav_gallery, GalleryFragment())
+            put(R.id.nav_applications, ApplicationsFragment())
         }
     }
 

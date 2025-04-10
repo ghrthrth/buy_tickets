@@ -28,4 +28,10 @@
         android:name="com.example.buy_tickets.ui.create_services.CreateServicesFragment"
         android:label="@string/menu_create_service"
         tools:layout="@layout/fragment_create_services" />
+
+    <fragment
+        android:id="@+id/nav_create_applications"
+        android:name="com.example.buy_tickets.ui.applications.ApplicationsFragment"
+        android:label="Заявки"
+        tools:layout="@layout/fragment_applications" />
 </navigation>

@@ -114,7 +114,6 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
 
-
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/selectPhotos"
                     android:layout_width="271dp"

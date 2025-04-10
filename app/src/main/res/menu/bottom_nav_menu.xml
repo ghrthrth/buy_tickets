@@ -10,4 +10,8 @@
         android:id="@+id/nav_create_service"
         android:icon="@drawable/create"
         android:title="@string/menu_create_service" />
+    <item
+        android:id="@+id/nav_applications"
+        android:icon="?android:attr/actionModeFindDrawable"
+        android:title="Заявки" />
 </menu>
