@@ -331,7 +331,7 @@ class CreateServicesFragment : Fragment() {
 
                 val requestBody = builder.build()
                 val request = Request.Builder()
-                    .url("https://decadances.store/buy_tickets/admin_api/add.php")
+                    .url("https://decadances.ru/buy_tickets/admin_api/add.php")
                     .post(requestBody)
                     .build()
 

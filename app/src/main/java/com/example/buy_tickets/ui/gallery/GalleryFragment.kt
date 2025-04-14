@@ -1,14 +1,18 @@
 package com.example.buy_tickets.ui.gallery
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.buy_tickets.R
 import com.example.buy_tickets.databinding.FragmentGalleryBinding
 import com.example.buy_tickets.ui.filter.FilterFragment
 import com.example.buy_tickets.ui.user.UserPreferences
@@ -24,7 +28,8 @@ import java.util.Calendar
 import java.util.Locale
 
 
-class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListener, FilterFragment.FilterFragmentListener {
+class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListener,
+    FilterFragment.FilterFragmentListener {
 
     private var binding: FragmentGalleryBinding? = null
     private val ids = mutableListOf<String>()
@@ -33,6 +38,7 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
     private val descriptions = mutableListOf<String>()
     private val latitudes = mutableListOf<Double?>()
     private val longitudes = mutableListOf<Double?>()
+    private lateinit var registrationForm: View
 
     private val client = OkHttpClient()
     private lateinit var adapter: ImageAdapter
@@ -90,7 +96,7 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
     }
 
     private fun getPhotoUrlsFromServer() {
-        val url = "https://decadances.store/buy_tickets/admin_api/return.php"
+        val url = "https://decadances.ru/buy_tickets/admin_api/return.php"
         val request = Request.Builder().url(url).build()
 
         client.newCall(request).enqueue(object : Callback {
@@ -131,7 +137,8 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
         })
     }
 
-    private fun sendPurchaseData(productId: String, productName: String) {
+    private fun sendPurchaseData(productId: String, productName: String, firstName: String,
+                                 lastName: String, phone:String) {
         val userId = userPreferences.getUserId() ?: ""
 
         // Создаем JSON-объект
@@ -139,15 +146,20 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
             put("user_id", userId)
             put("service_id", productId)
             put("product_name", productName)
-            put("dates", SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).format(Calendar.getInstance().time))
-            put("times", SimpleDateFormat("HH:mm", Locale.getDefault()).format(Calendar.getInstance().time))
+            put("first_name", firstName)
+            put("last_name", lastName)
+            put("phone", phone)
+            put("dates", SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).
+            format(Calendar.getInstance().time))
+            put("times", SimpleDateFormat("HH:mm", Locale.getDefault()).
+            format(Calendar.getInstance().time))
         }
 
         // Создаем RequestBody с JSON
         val requestBody = json.toString().toRequestBody("application/json".toMediaType())
 
         val request = Request.Builder()
-            .url("https://decadances.store/buy_tickets/api/add_application/add.php")
+            .url("https://decadances.ru/buy_tickets/api/add_application/add.php")
             .post(requestBody)
             .build()
 
@@ -209,7 +221,7 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
                                 )
                                 detailFragment.setOnProductDeletedListener(this@GalleryFragment)
                                 detailFragment.setOnProductBuyListener { ids, titles ->
-                                    sendPurchaseData(ids, titles)
+                                    showRegistrationDialog(ids,titles)
                                 }
                                 detailFragment.show(parentFragmentManager, "product_detail")
                             }
@@ -217,6 +229,45 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
                     })
                 }
             }
+        }
+    }
+
+    private fun showRegistrationDialog(productIds: String, productTitles: String) {
+        val dialog = AlertDialog.Builder(requireContext()).apply {
+            setTitle("Записаться")
+            setView(createRegistrationForm())
+            setPositiveButton("Отправить") { dialog, _ ->
+                // Обработка данных формы
+                processRegistrationForm(productIds, productTitles)
+                dialog.dismiss()
+            }
+            setNegativeButton("Отмена") { dialog, _ ->
+                dialog.dismiss()
+            }
+        }.create()
+
+        dialog.show()
+    }
+
+    private fun createRegistrationForm(): View {
+        val inflater = LayoutInflater.from(requireContext())
+        registrationForm = inflater.inflate(R.layout.registration_form, null)
+        return registrationForm
+    }
+
+
+    private fun processRegistrationForm(productIds: String, productTitles: String) {
+        val firstName = registrationForm.findViewById<EditText>(R.id.etFirstName).text.toString()
+        val lastName = registrationForm.findViewById<EditText>(R.id.etLastName).text.toString()
+        val phone = registrationForm.findViewById<EditText>(R.id.etPhone).text.toString()
+
+        // Проверка данных и отправка
+        if (firstName.isNotEmpty() && lastName.isNotEmpty() && phone.isNotEmpty()) {
+            sendPurchaseData(productIds, productTitles, firstName, lastName, phone)
+            Log.d("GalleryFragment", "ok")
+            Log.d("GalleryFragment", "ok")
+        } else {
+            Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_SHORT).show()
         }
     }
 

@@ -77,7 +77,6 @@ class AuthActivity : AppCompatActivity() {
         startActivityForResult(signInIntent, RC_SIGN_IN)
         binding.progressBar.visibility = View.VISIBLE
     }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -87,8 +86,8 @@ class AuthActivity : AppCompatActivity() {
                     .getResult(ApiException::class.java)
                 firebaseAuthWithGoogle(account)
             } catch (e: ApiException) {
-                Log.w(TAG, "Google sign in failed", e)
-                showError("Ошибка авторизации: ${e.message}")
+                Log.e(TAG, "Ошибка входа (Код ${e.statusCode}): ${e.message}")
+                showError("Ошибка входа. Попробуйте снова")
                 binding.progressBar.visibility = View.GONE
             }
         }

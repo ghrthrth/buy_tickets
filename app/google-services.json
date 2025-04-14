@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "420738209399-4vkda3gvaa8egl9vd0841blhbplt3e1c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.buy_tickets",
+            "certificate_hash": "60a88b48a5f25cbcfc4b9486e3cd3c899b6ca1ed"
+          }
+        },
+        {
           "client_id": "420738209399-7iiiqn11p6s40g6b0hk5qmbom1j2nb1p.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

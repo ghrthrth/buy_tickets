@@ -62,7 +62,7 @@ class ApplicationDetailFragment(
         }
 
         sendDataButton.setOnClickListener {
-            HttpRequestTask(mContext, "https://decadances.store/telestock/api/add_application/delete.php", params).execute()
+            HttpRequestTask(mContext, "https://decadances.ru/buy_tickets/api/add_application/delete.php", params).execute()
             dismiss()
         }
 

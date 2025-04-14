@@ -1,6 +1,7 @@
 package com.example.buy_tickets.ui.applications
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -50,9 +51,13 @@ class ApplicationsFragment : Fragment() {
     }
 
     private fun getPhotoUrlsFromServer() {
-        if (!isAdded) return // Проверяем, не был ли фрагмент уничтожен
+        if (!isAdded) {
+            Log.d("PARSE_DEBUG", "Fragment not attached, aborting")
+            return
+        }
 
-        val url = "https://decadances.store/telestock/api/add_application/return.php" // Замените на ваш URL-адрес сервера
+        val url = "https://decadances.ru/buy_tickets/api/add_application/return.php"
+        Log.d("PARSE_DEBUG", "Starting request to: $url")
 
         val client = OkHttpClient()
         val request = Request.Builder()
@@ -61,63 +66,151 @@ class ApplicationsFragment : Fragment() {
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
+                Log.e("PARSE_ERROR", "Network request failed", e)
             }
 
             override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    val json = response.body?.string()
-                    try {
-                        val jsonObject = JSONObject(json)
-                        val user_idArray = jsonObject.getJSONArray("user_id")
-                        val service_idArray = jsonObject.getJSONArray("id_service")
-                        val titleArray = jsonObject.getJSONArray("title")
-                        val nameArray = jsonObject.getJSONArray("name")
-                        val surnameArray = jsonObject.getJSONArray("surname")
-                        val phoneArray = jsonObject.getJSONArray("phone")
-                        val datesArray = jsonObject.getJSONArray("dates")
-                        val timesArray = jsonObject.getJSONArray("times")
-                        val product_quantityArray = jsonObject.getJSONArray("product_quantity")
-
-                        val ids = mutableListOf<String>()
-                        val service_ids = mutableListOf<String>()
-                        val titles = mutableListOf<String>()
-                        val names = mutableListOf<String>()
-                        val surnames = mutableListOf<String>()
-                        val phones = mutableListOf<String>()
-                        val dates = mutableListOf<String>()
-                        val times = mutableListOf<String>()
-                        val product_quantitys = mutableListOf<String>()
-
-                        addItemsToList(user_idArray, ids)
-                        addItemsToList(service_idArray, service_ids)
-                        addItemsToList(titleArray, titles)
-                        addItemsToList(nameArray, names)
-                        addItemsToList(surnameArray, surnames)
-                        addItemsToList(phoneArray, phones)
-                        addItemsToList(datesArray, dates)
-                        addItemsToList(timesArray, times)
-                        addItemsToList(product_quantityArray, product_quantitys)
-
-                        displayPhotosInGrid(ids, service_ids, titles, names, surnames, phones, dates, times, product_quantitys)
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
+                try {
+                    if (!response.isSuccessful) {
+                        Log.e("PARSE_ERROR", "Unsuccessful response. Code: ${response.code}")
+                        return
                     }
+
+                    val json = response.body?.string()
+                    if (json.isNullOrEmpty()) {
+                        Log.e("PARSE_ERROR", "Response body is null or empty")
+                        return
+                    }
+
+                    Log.d("PARSE_DEBUG", "Raw JSON response: $json")
+
+                    val jsonObject = JSONObject(json)
+                    logJsonStructure(jsonObject) // Логируем структуру JSON
+
+                    val ids = parseAndLogArray(jsonObject, "user_id", "user_ids")
+                    val serviceIds = parseAndLogArray(jsonObject, "service_id", "service_ids")
+                    val productNames = parseAndLogArray(jsonObject, "product_name", "product_names")
+                    val firstNames = parseAndLogArray(jsonObject, "first_name", "first_names")
+                    val lastNames = parseAndLogArray(jsonObject, "last_name", "last_names")
+                    val phones = parseAndLogArray(jsonObject, "phone", "phones")
+                    val dates = parseAndLogArray(jsonObject, "dates", "dates")
+                    val times = parseAndLogArray(jsonObject, "times", "times")
+
+                    // Проверка согласованности массивов
+                    if (!checkArraysConsistency(ids, serviceIds, productNames, firstNames, lastNames, phones, dates, times)) {
+                        Log.e("PARSE_ERROR", "Arrays have inconsistent lengths")
+                        return
+                    }
+
+                    Log.d("PARSE_SUCCESS", "Successfully parsed ${ids.size} items")
+
+                    // Вывод первых 3 элементов для проверки
+                    logSampleData(ids, serviceIds, productNames, firstNames, lastNames, phones, dates, times)
+
+                    activity?.runOnUiThread {
+                        displayPhotosInGrid(ids, serviceIds, productNames, firstNames, lastNames, phones, dates, times)
+                    }
+
+                } catch (e: JSONException) {
+                    Log.e("PARSE_ERROR", "JSON parsing error", e)
+                } catch (e: Exception) {
+                    Log.e("PARSE_ERROR", "Unexpected error", e)
                 }
             }
         })
     }
 
+    private fun logJsonStructure(jsonObject: JSONObject) {
+        try {
+            val keys = jsonObject.keys()
+            val keyList = mutableListOf<String>()
+            while (keys.hasNext()) {
+                keyList.add(keys.next())
+            }
+            Log.d("PARSE_DEBUG", "JSON structure - available keys: $keyList")
+
+            // Логируем тип и размер каждого массива
+            keyList.forEach { key ->
+                try {
+                    val array = jsonObject.getJSONArray(key)
+                    Log.d("PARSE_DEBUG", "Key '$key' is array with ${array.length()} elements")
+                } catch (e: JSONException) {
+                    Log.d("PARSE_DEBUG", "Key '$key' is not an array or missing")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("PARSE_ERROR", "Error logging JSON structure", e)
+        }
+    }
+
+    private fun parseAndLogArray(jsonObject: JSONObject, key: String, debugName: String): List<String> {
+        return try {
+            val array = jsonObject.getJSONArray(key)
+            val list = mutableListOf<String>()
+            for (i in 0 until array.length()) {
+                list.add(array.getString(i))
+            }
+            Log.d("PARSE_DEBUG", "Parsed $debugName: ${list.size} items")
+            list
+        } catch (e: JSONException) {
+            Log.e("PARSE_ERROR", "Failed to parse array '$key'", e)
+            emptyList()
+        }
+    }
+
+    private fun checkArraysConsistency(vararg arrays: List<Any>): Boolean {
+        if (arrays.isEmpty()) return true
+        val firstSize = arrays[0].size
+        arrays.forEachIndexed { index, list ->
+            if (list.size != firstSize) {
+                Log.e("PARSE_ERROR", "Array at position $index has size ${list.size}, expected $firstSize")
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun logSampleData(
+        ids: List<String>,
+        serviceIds: List<String>,
+        productNames: List<String>,
+        firstNames: List<String>,
+        lastNames: List<String>,
+        phones: List<String>,
+        dates: List<String>,
+        times: List<String>
+    ) {
+        val sampleSize = minOf(3, ids.size)
+        if (sampleSize == 0) {
+            Log.d("PARSE_DEBUG", "No data to display")
+            return
+        }
+
+        Log.d("PARSE_SAMPLE", "=== Sample data (first $sampleSize items) ===")
+        for (i in 0 until sampleSize) {
+            Log.d("PARSE_SAMPLE", """
+            Item $i:
+            - user_id: ${ids.getOrNull(i)}
+            - service_id: ${serviceIds.getOrNull(i)}
+            - product_name: ${productNames.getOrNull(i)}
+            - first_name: ${firstNames.getOrNull(i)}
+            - last_name: ${lastNames.getOrNull(i)}
+            - phone: ${phones.getOrNull(i)}
+            - date: ${dates.getOrNull(i)}
+            - time: ${times.getOrNull(i)}
+        """.trimIndent())
+        }
+    }
+
     private fun displayPhotosInGrid(
         ids: List<String>,
         service_ids: List<String>,
-        titles: List<String>,
-        names: List<String>,
-        surnames: List<String>,
+        product_name: List<String>,
+        firstNames: List<String>,
+        lastNames: List<String>,
         phones: List<String>,
         dates: List<String>,
         times: List<String>,
-        product_quantitys: List<String>
     ) {
         if (activity == null || binding == null) {
             return // Предотвращение краша, если фрагмент уничтожен
@@ -132,48 +225,14 @@ class ApplicationsFragment : Fragment() {
                 requireContext(),
                 ids as MutableList<String>,
                 service_ids as MutableList<String>,
-                titles as MutableList<String>,
-                names as MutableList<String>,
-                surnames as MutableList<String>,
+                product_name as MutableList<String>,
+                firstNames as MutableList<String>,
+                lastNames as MutableList<String>,
                 phones as MutableList<String>,
                 dates as MutableList<String>,
-                times as MutableList<String>,
-                product_quantitys as MutableList<String>
+                times as MutableList<String>
             )
             gridView.adapter = adapter
-
-
-            gridView.onItemClickListener =
-                AdapterView.OnItemClickListener { parent, view, position, id ->
-                    if (binding == null) return@OnItemClickListener // Проверяем, не уничтожен ли фрагмент
-
-                    val selectedUserId = ids[position]
-                    val selectedServiceId = service_ids[position]
-                    val selectedTitle = titles[position]
-                    val selectedNames = names[position]
-                    val selectedSurnames = surnames[position]
-                    val selectedPhones = phones[position]
-                    val selectedDates = dates[position]
-                    val selectedTimes = times[position]
-                    val selectedProduct_quantitys = product_quantitys[position]
-
-                    val detailFragment = ApplicationDetailFragment(
-                        requireContext(),
-                        selectedUserId,
-                        selectedServiceId,
-                        selectedTitle,
-                        selectedNames,
-                        selectedSurnames,
-                        selectedPhones,
-                        selectedDates,
-                        selectedTimes,
-                        selectedProduct_quantitys
-                    )
-
-                    parentFragmentManager?.let {
-                        detailFragment.show(it, "application_detail")
-                    }
-                }
         }
     }
 
@@ -184,5 +243,4 @@ class ApplicationsFragment : Fragment() {
         // Отменяем все асинхронные запросы
         client.dispatcher.cancelAll()
     }
-
 }
