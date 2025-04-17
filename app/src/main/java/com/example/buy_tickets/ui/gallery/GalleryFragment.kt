@@ -54,6 +54,14 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
 
         val root = binding?.root
 
+        val userPrefs = context?.let { UserPreferences(it) }
+        if (userPrefs != null) {
+            if (userPrefs.isAdmin()) {
+                Log.d("GalleryFragment", "Is admin: ${userPrefs.isAdmin()}")
+            } else {
+                // Обычный пользователь
+            }
+        }
 
         userPreferences = UserPreferences(requireContext())
         getPhotoUrlsFromServer()

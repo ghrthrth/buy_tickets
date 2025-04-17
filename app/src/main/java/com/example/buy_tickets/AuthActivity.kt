@@ -108,16 +108,18 @@ class AuthActivity : AppCompatActivity() {
             }
     }
 
-    private fun onAuthSuccess(user: FirebaseUser?) {
-        user?.let {
-            Log.d(TAG, "signInWithCredential:success")
-            saveUserToDatabase(user)
+    private fun checkIfUserIsAdmin(user: FirebaseUser, callback: (Boolean) -> Unit) {
+        val database = FirebaseDatabase.getInstance()
+        val userRef = database.getReference("users").child(user.uid).child("isAdmin")
 
-            // Сохраняем данные пользователя в SharedPreferences
-            val userPrefs = UserPreferences(this)
-            userPrefs.saveUserData(user.uid, user.email ?: user.displayName ?: "Anonymous")
-
-            startMainActivity()
+        userRef.get().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val isAdmin = task.result?.getValue(Boolean::class.java) ?: false
+                callback(isAdmin)
+            } else {
+                Log.e(TAG, "Error checking admin status", task.exception)
+                callback(false)
+            }
         }
     }
 
@@ -126,7 +128,23 @@ class AuthActivity : AppCompatActivity() {
         showError("Ошибка аутентификации: ${exception?.message}")
     }
 
-    private fun saveUserToDatabase(user: FirebaseUser) {
+    private fun onAuthSuccess(user: FirebaseUser?) {
+        user?.let {
+            Log.d(TAG, "signInWithCredential:success")
+
+            checkIfUserIsAdmin(user) { isAdmin ->
+                saveUserToDatabase(user, isAdmin)
+
+                // Сохраняем данные пользователя в SharedPreferences
+                val userPrefs = UserPreferences(this)
+                userPrefs.saveUserData(user.uid, user.email ?: user.displayName ?: "Anonymous", isAdmin)
+
+                startMainActivity()
+            }
+        }
+    }
+
+    private fun saveUserToDatabase(user: FirebaseUser, isAdmin: Boolean) {
         val database = FirebaseDatabase.getInstance()
         val usersRef = database.getReference("users")
 
@@ -135,7 +153,8 @@ class AuthActivity : AppCompatActivity() {
             "email" to (user.email ?: ""),
             "displayName" to (user.displayName ?: ""),
             "photoUrl" to (user.photoUrl?.toString() ?: ""),
-            "provider" to "google"
+            "provider" to "google",
+            "isAdmin" to isAdmin
         )
 
         usersRef.child(user.uid).setValue(userData)

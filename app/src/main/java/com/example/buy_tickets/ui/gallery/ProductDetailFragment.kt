@@ -62,6 +62,7 @@ class ProductDetailFragment(
     ): View? {
         val view = inflater.inflate(R.layout.fragment_product_detail, container, false)
 
+        val userPrefs = context?.let { UserPreferences(it) }
         // Инициализация View-элементов
         val imageView = view.findViewById<ImageView>(R.id.product_image)
         val titleTextView = view.findViewById<TextView>(R.id.title)
@@ -74,7 +75,13 @@ class ProductDetailFragment(
         deleteButton.setOnClickListener {
             deleteProduct()
         }
-
+        if (userPrefs != null) {
+            if (userPrefs.isAdmin()) {
+                deleteButton.visibility = View.VISIBLE
+            } else {
+                deleteButton.visibility = View.INVISIBLE
+            }
+        }
         // Установка данных
         Picasso.get().load(imageUrl).into(imageView)
         titleTextView.text = "Название услуги: $title"
