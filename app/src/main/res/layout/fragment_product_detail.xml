@@ -71,6 +71,23 @@
         android:gravity="center"
         android:elevation="4dp" />
 
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Удалить"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/gradient_button_background"
+            android:backgroundTint="@null"
+            android:textColor="@color/button_text_color"
+            android:textSize="18sp"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="12dp"
+            android:drawableStart="@android:drawable/ic_delete"
+            android:drawablePadding="8dp"
+            android:gravity="center"
+            android:elevation="4dp" />
+
 
 
     </LinearLayout>

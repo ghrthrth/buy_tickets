@@ -210,24 +210,80 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
                     setOnItemClickListener(object : ImageAdapter.OnItemClickListener {
                         override fun onItemClick(position: Int) {
                             if (position in ids.indices) {
-                                val detailFragment = ProductDetailFragment(
-                                    requireContext(),
-                                    ids[position].toInt(),
-                                    titles[position],
-                                    descriptions[position],
-                                    photoUrls[position],
-                                    latitudes.getOrNull(position) ?: 55.179902,
-                                    longitudes.getOrNull(position) ?: 30.213778
-                                )
-                                detailFragment.setOnProductDeletedListener(this@GalleryFragment)
-                                detailFragment.setOnProductBuyListener { ids, titles ->
-                                    showRegistrationDialog(ids,titles)
+                                    val detailFragment = ProductDetailFragment(
+                                        requireContext(),
+                                ids[position].toInt(),
+                                titles[position],
+                                descriptions[position],
+                                photoUrls[position],
+                                latitudes.getOrNull(position) ?: 55.179902,
+                                longitudes.getOrNull(position) ?: 30.213778
+                                ).apply {
+                                    // Устанавливаем оба listener'а
+                                    setOnProductDeleteListener(object : ProductDetailFragment.OnProductDeleteListener {
+                                        override fun onProductDeleted(productId: Int) {
+                                            updateAfterDeletion(productId)
+                                        }
+                                    })
+                                    setOnProductDeletedListener(this@GalleryFragment)
                                 }
+
+                                detailFragment.setOnProductDeleteListener(object :
+                                    ProductDetailFragment.OnProductDeleteListener {
+                                    override fun onProductDeleted(productId: Int) {
+                                        activity?.runOnUiThread {
+                                            val adapter = binding?.recyclerView?.adapter as? ImageAdapter
+                                            val position = ids.indexOf(productId.toString())
+                                            if (position != -1 && adapter != null) {
+                                                // Удаляем из основного списка
+                                                ids.removeAt(position)
+                                                photoUrls.removeAt(position)
+                                                titles.removeAt(position)
+                                                descriptions.removeAt(position)
+                                                latitudes.removeAt(position)
+                                                longitudes.removeAt(position)
+
+                                                // Удаляем из адаптера
+                                                adapter.removeItem(position)
+
+                                                //Toast.makeText(context, "Удалено", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    }
+                                })
+
+                                detailFragment.setOnProductBuyListener { ids, titles ->
+                                    showRegistrationDialog(ids, titles)
+                                }
+
                                 detailFragment.show(parentFragmentManager, "product_detail")
                             }
                         }
                     })
                 }
+            }
+        }
+    }
+
+    private fun updateAfterDeletion(productId: Int) {
+        activity?.runOnUiThread {
+            val position = ids.indexOf(productId.toString())
+            if (position != -1) {
+                // Удаляем из всех списков
+                ids.removeAt(position)
+                photoUrls.removeAt(position)
+                titles.removeAt(position)
+                descriptions.removeAt(position)
+                latitudes.removeAt(position)
+                longitudes.removeAt(position)
+
+                // Обновляем адаптер
+                (binding?.recyclerView?.adapter as? ImageAdapter)?.let { adapter ->
+                    adapter.updateAllData(photoUrls, titles, descriptions,
+                        latitudes.filterNotNull(), longitudes.filterNotNull())
+                }
+
+                Log.d("GalleryFragment", "Запись $productId удалена из списка")
             }
         }
     }

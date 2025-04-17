@@ -1,6 +1,7 @@
 package com.example.buy_tickets.ui.gallery
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,18 +15,18 @@ import com.squareup.picasso.Picasso
 
 class ImageAdapter(
     private val context: Context,
-    private val photoUrls: List<String>,
-    private val titles: List<String>,
-    private val descriptions: List<String>,
-    private val latitudes: List<Double>,
-    private val longitudes: List<Double>
+    photoUrls: List<String>,
+    titles: List<String>,
+    descriptions: List<String>,
+    latitudes: List<Double>,
+    longitudes: List<Double>
 ) : RecyclerView.Adapter<ImageAdapter.ViewHolder>(), Filterable {
 
-    private var filteredPhotoUrls = ArrayList(photoUrls)
-    private var filteredTitles = ArrayList(titles)
-    private var filteredDescriptions = ArrayList(descriptions)
-    private var filteredLatitudes = ArrayList(latitudes)
-    private var filteredLongitudes = ArrayList(longitudes)
+    private var filteredPhotoUrls = photoUrls.toMutableList()
+    private var filteredTitles = titles.toMutableList()
+    private var filteredDescriptions = descriptions.toMutableList()
+    private var filteredLatitudes = latitudes.toMutableList()
+    private var filteredLongitudes = longitudes.toMutableList()
 
     private var listener: OnItemClickListener? = null
 
@@ -35,6 +36,40 @@ class ImageAdapter(
 
     fun setOnItemClickListener(listener: OnItemClickListener) {
         this.listener = listener
+    }
+
+    // Метод для удаления элемента
+    fun removeItem(position: Int) {
+        filteredPhotoUrls.removeAt(position)
+        filteredTitles.removeAt(position)
+        filteredDescriptions.removeAt(position)
+        filteredLatitudes.removeAt(position)
+        filteredLongitudes.removeAt(position)
+        notifyItemRemoved(position)
+        notifyItemRangeChanged(position, filteredTitles.size)
+    }
+
+    fun updateAllData(
+        newPhotoUrls: List<String>,
+        newTitles: List<String>,
+        newDescriptions: List<String>,
+        newLatitudes: List<Double>,
+        newLongitudes: List<Double>
+    ) {
+        filteredPhotoUrls.clear()
+        filteredTitles.clear()
+        filteredDescriptions.clear()
+        filteredLatitudes.clear()
+        filteredLongitudes.clear()
+
+        filteredPhotoUrls.addAll(newPhotoUrls)
+        filteredTitles.addAll(newTitles)
+        filteredDescriptions.addAll(newDescriptions)
+        filteredLatitudes.addAll(newLatitudes)
+        filteredLongitudes.addAll(newLongitudes)
+
+        notifyDataSetChanged()
+        Log.d("ImageAdapter", "Данные адаптера обновлены")
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
