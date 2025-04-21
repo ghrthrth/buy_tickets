@@ -21,33 +21,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val fragmentMap = mutableMapOf<Int, Fragment>()
     private var currentFragmentId: Int? = null
-    private lateinit var fab: FloatingActionButton // Добавьте в объявления переменных
-
+    private lateinit var fab: FloatingActionButton
     private lateinit var googleSignInClient: GoogleSignInClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Проверка авторизации
-        if (FirebaseAuth.getInstance().currentUser == null) {
-            redirectToAuth()
-            return
-        }
+        // Authentication check
+        val auth = FirebaseAuth.getInstance()
 
+        // Initialize Google SignIn
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso)
-
-        // Проверка авторизации
-        val auth = FirebaseAuth.getInstance()
-        val userPrefs = UserPreferences(this)
-
-        if (auth.currentUser == null || userPrefs.getUserId() == null) {
-            redirectToAuth()
-            return
-        }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -56,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         handleInitialFragment(savedInstanceState)
 
-        // Инициализация FAB
+        // Initialize FAB
         fab = findViewById(R.id.fabLogout)
         fab.setOnClickListener {
             showLogoutConfirmationDialog()
@@ -76,21 +64,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun logout() {
-        // Анимация загрузки (опционально)
         fab.animate().rotationBy(360f).setDuration(500).start()
-
-        // 1. Выход из Firebase
         FirebaseAuth.getInstance().signOut()
-
-        // 2. Очищаем SharedPreferences
         UserPreferences(this).clearUserData()
 
-        // 3. Выход из Google
         googleSignInClient.signOut().addOnCompleteListener(this) {
-            // 4. Перенаправление на экран авторизации
             redirectToAuth()
         }.addOnFailureListener {
-            // Если выход из Google не удался, все равно перенаправляем
             redirectToAuth()
         }
     }

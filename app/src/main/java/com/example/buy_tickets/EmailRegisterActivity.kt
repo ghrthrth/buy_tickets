@@ -106,6 +106,7 @@ class EmailRegisterActivity : AppCompatActivity() {
         val userData = HashMap<String, Any>()
         userData["uid"] = user.uid
         userData["email"] = email
+        userData["isAdmin"] = false
         userData["displayName"] = name
         userData["photoUrl"] = ""
         userData["provider"] = provider

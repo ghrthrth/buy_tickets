@@ -24,7 +24,7 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private val RC_SIGN_IN = 9001
-    private val TAG = "AuthActivity"
+    private val TAG = "ftyfytfyu"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -163,9 +163,14 @@ class AuthActivity : AppCompatActivity() {
     }
 
     private fun startMainActivity() {
-        startActivity(Intent(this, MainActivity::class.java))
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("FROM_AUTH", true)  // Signal that we're coming from auth
+        }
+        startActivity(intent)
         finish()
     }
+
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
