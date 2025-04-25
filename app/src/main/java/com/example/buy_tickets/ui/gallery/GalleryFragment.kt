@@ -228,7 +228,7 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
                                 longitudes.getOrNull(position) ?: 30.213778
                                 ).apply {
                                     // Устанавливаем оба listener'а
-                                    setOnProductDeleteListener(object : ProductDetailFragment.OnProductDeleteListener {
+                                    setOnProductDeletedListener(object : ProductDetailFragment.OnProductDeletedListener {
                                         override fun onProductDeleted(productId: Int) {
                                             updateAfterDeletion(productId)
                                         }
@@ -236,8 +236,8 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
                                     setOnProductDeletedListener(this@GalleryFragment)
                                 }
 
-                                detailFragment.setOnProductDeleteListener(object :
-                                    ProductDetailFragment.OnProductDeleteListener {
+                                detailFragment.setOnProductDeletedListener(object :
+                                    ProductDetailFragment.OnProductDeletedListener {
                                     override fun onProductDeleted(productId: Int) {
                                         activity?.runOnUiThread {
                                             val adapter = binding?.recyclerView?.adapter as? ImageAdapter
@@ -260,9 +260,18 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
                                     }
                                 })
 
-                                detailFragment.setOnProductBuyListener { ids, titles ->
-                                    showRegistrationDialog(ids, titles)
-                                }
+                                detailFragment.setOnProductBuyListener(object : ProductDetailFragment.OnProductBuyListener {
+                                    override fun onProductBuy(ids: String, titles: String) {
+                                        showRegistrationDialog(ids, titles)
+                                    }
+                                })
+
+                                detailFragment.setOnProductEditListener(object : ProductDetailFragment.OnProductEditListener {
+                                    override fun onProductEdited() {
+                                        // Просто делаем повторный запрос данных
+                                        getPhotoUrlsFromServer()
+                                    }
+                                })
 
                                 detailFragment.show(parentFragmentManager, "product_detail")
                             }
