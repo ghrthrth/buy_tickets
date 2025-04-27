@@ -6,8 +6,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.graphics.Rect
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -37,9 +39,11 @@ import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -52,7 +56,14 @@ class ProductDetailFragment(
     private val imageUrl: String,
     private val latitude: Double,
     private val longitude: Double,
-    private var onProductDeleteListener: OnProductDeleteListener? = null
+    private var onProductDeleteListener: OnProductDeleteListener? = null,
+    private val REQUEST_CODE_PICK_IMAGE: Int = 1,
+    private val REQUEST_CODE_PERMISSION: Int = 2,
+    private var selectedImageUri: Uri? = null,
+    private var editImageView: ImageView? = null
+
+
+
 ) : BottomSheetDialogFragment() {
 
     private lateinit var userPreferences: UserPreferences
@@ -60,17 +71,6 @@ class ProductDetailFragment(
     private var onProductBuyListener: OnProductBuyListener? = null
     private var onProductEditListener: OnProductEditListener? = null
     private var onProductDeletedListener: OnProductDeletedListener? = null
-    private var currentPhotoPath: String? = null
-
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            dispatchTakePictureIntent()
-        } else {
-            Toast.makeText(context, "Разрешение на камеру необходимо для изменения фото", Toast.LENGTH_SHORT).show()
-        }
-    }
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -90,6 +90,7 @@ class ProductDetailFragment(
         val appointmentButton = view.findViewById<Button>(R.id.button_appointment)
         val editButton = view.findViewById<Button>(R.id.button_edit)
         val deleteButton = view.findViewById<Button>(R.id.button_delete)
+
         mapView = view.findViewById(R.id.mapview)
 
         // Установка данных
@@ -145,9 +146,76 @@ class ProductDetailFragment(
             }
         }
 
+        editButton.setOnClickListener {
+            showEditDialog()
+        }
+
         return view
     }
 
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            selectedImageUri = it
+            editImageView?.let { imageView ->
+                Picasso.get()
+                    .load(it)
+                    .into(imageView)
+            }
+        }
+    }
+
+    // Заменяем `openGallery()` на:
+    private fun openGallery() {
+        galleryLauncher.launch("image/*")
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_PICK_IMAGE && resultCode == Activity.RESULT_OK) {
+            data?.data?.let { uri ->
+                selectedImageUri = uri
+                // Находим ImageView в диалоге и обновляем его
+                (dialog as? AlertDialog)?.findViewById<ImageView>(R.id.edit_product_image)?.let { imageView ->
+                    Picasso.get()
+                        .load(uri)
+                        .into(imageView)
+                }
+            }
+        }
+    }
+
+    private fun getRealPathFromUri(uri: Uri): String? {
+        var realPath: String? = null
+        val projection = arrayOf(MediaStore.Images.Media.DATA)
+        val cursor: Cursor? = requireActivity().contentResolver.query(uri, projection,
+            null, null, null)
+        cursor?.use {
+            val columnIndex = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            it.moveToFirst()
+            realPath = it.getString(columnIndex)
+        }
+        return realPath ?: uri.path
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == REQUEST_CODE_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openGallery()
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "Для выбора фото необходимо предоставить разрешение",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
     private fun showEditDialog() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_edit_product, null)
         val dialog = AlertDialog.Builder(context)
@@ -156,19 +224,41 @@ class ProductDetailFragment(
             .setNegativeButton("Отмена", null)
             .create()
 
-        val imageView = dialogView.findViewById<ImageView>(R.id.edit_product_image)
+        editImageView = dialogView.findViewById(R.id.edit_product_image)
         val titleEdit = dialogView.findViewById<TextInputEditText>(R.id.edit_product_title)
         val descEdit = dialogView.findViewById<TextInputEditText>(R.id.edit_product_description)
         val changeImageBtn = dialogView.findViewById<Button>(R.id.button_change_image)
         val saveBtn = dialogView.findViewById<Button>(R.id.button_save_changes)
 
+        // Функция для обновления изображения
+        fun updateImage() {
+            // При открытии диалога загружаем текущее изображение
+            selectedImageUri?.let { uri ->
+                Picasso.get().load(uri).into(editImageView)
+            } ?: run {
+                Picasso.get().load(imageUrl).into(editImageView)
+            }
+        }
+
+        // Инициализация изображения
+        updateImage()
+
         // Заполняем текущими значениями
-        Picasso.get().load(imageUrl).into(imageView)
         titleEdit?.setText(title)
         descEdit?.setText(description)
 
-        changeImageBtn?.setOnClickListener {
-            showImagePickerOptions()
+        changeImageBtn.setOnClickListener {
+            val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+
+            if (ContextCompat.checkSelfPermission(requireContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(permission), REQUEST_CODE_PERMISSION)
+            } else {
+                openGallery()
+            }
         }
 
         saveBtn?.setOnClickListener {
@@ -180,104 +270,35 @@ class ProductDetailFragment(
                 return@setOnClickListener
             }
 
-            // Если есть новое изображение (currentPhotoPath), используем его, иначе передаем null
-            val imageUri = currentPhotoPath?.let { path ->
-                Uri.fromFile(File(path))
-            }
-            updateProduct(id, newTitle, newDescription, imageUri)
+            updateProduct(id, newTitle, newDescription, selectedImageUri)
             dialog.dismiss()
         }
 
         dialog.show()
     }
 
-    private fun showImagePickerOptions() {
-        val options = arrayOf<CharSequence>("Сделать фото", "Выбрать из галереи", "Отмена")
-        val builder = AlertDialog.Builder(context)
-        builder.setTitle("Выберите изображение")
-        builder.setItems(options) { dialog, item ->
-            when {
-                options[item] == "Сделать фото" -> checkCameraPermissionAndTakePhoto()
-                options[item] == "Выбрать из галереи" -> pickImageFromGallery()
-                options[item] == "Отмена" -> dialog.dismiss()
-            }
-        }
-        builder.show()
-    }
-
-    private fun checkCameraPermissionAndTakePhoto() {
-        when {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                dispatchTakePictureIntent()
-            }
-            else -> {
-                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-            }
-        }
-    }
-
-    private fun dispatchTakePictureIntent() {
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-            takePictureIntent.resolveActivity(context.packageManager)?.also {
-                val photoFile: File? = try {
-                    createImageFile()
-                } catch (ex: IOException) {
-                    null
-                }
-                photoFile?.also {
-                    val photoURI: Uri = FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.fileprovider",
-                        it
-                    )
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    takePictureResult.launch(takePictureIntent)
-                }
-            }
-        }
-    }
-
-    @Throws(IOException::class)
-    private fun createImageFile(): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir: File? = context.getExternalFilesDir(null)
-        return File.createTempFile(
-            "JPEG_${timeStamp}_",
-            ".jpg",
-            storageDir
-        ).apply {
-            currentPhotoPath = absolutePath
-        }
-    }
-
-    private fun pickImageFromGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        pickImageResult.launch(intent)
-    }
-
     private fun updateProduct(
-        productId: Int,
-        title: String,
-        description: String,
-        imageUri: Uri? // Uri файла изображения (может быть null, если не меняется)
+    productId: Int,
+    title: String,
+    description: String,
+    imageUri: Uri?
     ) {
         val url = "https://decadances.ru/buy_tickets/admin_api/update.php"
 
-        // Создаем MultipartBody.Builder
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart("id_service", productId.toString())
             .addFormDataPart("title", title)
             .addFormDataPart("description", description)
 
-        // Если есть новое изображение, добавляем его
         imageUri?.let { uri ->
-            val file = File(uri.path ?: return@let)
-            if (file.exists()) {
-                val filePart = RequestBody.create("image/*".toMediaType(), file)
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            inputStream?.use { stream ->
+                val file = File.createTempFile("image", ".jpg", requireContext().cacheDir)
+                FileOutputStream(file).use { output ->
+                    stream.copyTo(output)
+                }
+                val filePart = file.asRequestBody("image/*".toMediaType())
                 requestBody.addFormDataPart(
                     "photo",
                     file.name,
@@ -346,47 +367,15 @@ class ProductDetailFragment(
                         dismiss()
                         Toast.makeText(context, "Удалено успешно", Toast.LENGTH_SHORT).show()
                     } else {
-                        Log.e("DeleteProduct", "Ошибка сервера: ${response.code}, тело ответа: $responseBody")
+                        Log.e("DeleteProduct", "Ошибка сервера: ${response.code}, " +
+                                "тело ответа: $responseBody")
                         Toast.makeText(context, "Ошибка сервера", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         })
     }
-    private val takePictureResult = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            currentPhotoPath?.let { path ->
-                val imageView = dialog?.findViewById<ImageView>(R.id.edit_product_image)
-                imageView?.setImageURI(Uri.fromFile(File(path)))
-            }
-        }
-    }
 
-    private val pickImageResult = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.data?.let { uri ->
-                currentPhotoPath = getPathFromUri(uri)
-                val imageView = dialog?.findViewById<ImageView>(R.id.edit_product_image)
-                imageView?.setImageURI(uri)
-            }
-        }
-    }
-
-    @SuppressLint("Range")
-    private fun getPathFromUri(uri: Uri): String {
-        val projection = arrayOf(MediaStore.Images.Media.DATA)
-        val cursor = context.contentResolver.query(uri, projection, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                return it.getString(it.getColumnIndex(MediaStore.Images.Media.DATA))
-            }
-        }
-        return uri.path ?: ""
-    }
     override fun onStart() {
         super.onStart()
         MapKitFactory.getInstance().onStart()

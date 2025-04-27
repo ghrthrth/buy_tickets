@@ -76,7 +76,8 @@ class CreateServicesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val createServicesViewModel = ViewModelProvider(this).get(CreateServicesViewModel::class.java)
+        val createServicesViewModel = ViewModelProvider(this).
+        get(CreateServicesViewModel::class.java)
 
         _binding = FragmentCreateServicesBinding.inflate(inflater, container, false)
         val root = binding.root
@@ -115,7 +116,8 @@ class CreateServicesFragment : Fragment() {
                 Manifest.permission.READ_EXTERNAL_STORAGE
             }
 
-            if (ContextCompat.checkSelfPermission(requireContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(requireContext(), permission) != PackageManager.
+                PERMISSION_GRANTED) {
                 // Запрашиваем разрешение
                 requestPermissions(arrayOf(permission), REQUEST_CODE_PERMISSION)
             } else {
@@ -136,7 +138,8 @@ class CreateServicesFragment : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        Log.d("PhotoSelect", "onActivityResult: requestCode=$requestCode, resultCode=$resultCode")
+        Log.d("PhotoSelect", "onActivityResult: requestCode=$requestCode, " +
+                "resultCode=$resultCode")
         if (requestCode == REQUEST_CODE_PICK_IMAGE && resultCode == android.app.Activity.RESULT_OK) {
             selectedImageUri = data?.data
             Log.d("PhotoSelect", "Selected URI: $selectedImageUri")
@@ -146,7 +149,8 @@ class CreateServicesFragment : Fragment() {
     private fun getRealPathFromUri(uri: Uri): String? {
         var realPath: String? = null
         val projection = arrayOf(MediaStore.Images.Media.DATA)
-        val cursor: Cursor? = requireActivity().contentResolver.query(uri, projection, null, null, null)
+        val cursor: Cursor? = requireActivity().contentResolver.query(uri, projection,
+            null, null, null)
         cursor?.use {
             val columnIndex = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
             it.moveToFirst()
@@ -224,7 +228,8 @@ class CreateServicesFragment : Fragment() {
                         if (item.center != null) {
                             selectedLatitude = item.center!!.latitude
                             selectedLongitude = item.center!!.longitude
-                            Log.d("Coordinates", "Lat: $selectedLatitude, Lon: $selectedLongitude")
+                            Log.d("Coordinates", "Lat: $selectedLatitude, " +
+                                    "Lon: $selectedLongitude")
                         }
                     }
                 }
@@ -309,7 +314,8 @@ class CreateServicesFragment : Fragment() {
                 if (selectedLatitude != null && selectedLongitude != null) {
                     builder.addFormDataPart("latitude", selectedLatitude.toString())
                     builder.addFormDataPart("longitude", selectedLongitude.toString())
-                    Log.d("HttpRequest", "Coordinates added: $selectedLatitude, $selectedLongitude")
+                    Log.d("HttpRequest", "Coordinates added: $selectedLatitude, " +
+                            "$selectedLongitude")
                 }
 
                 selectedImageUri?.let { uri ->
@@ -348,7 +354,8 @@ class CreateServicesFragment : Fragment() {
         private fun getFileName(uri: Uri): String? {
             var name: String? = null
             val projection = arrayOf(MediaStore.Images.Media.DISPLAY_NAME)
-            val cursor = requireActivity().contentResolver.query(uri, projection, null, null, null)
+            val cursor = requireActivity().contentResolver.query(uri, projection,
+                null, null, null)
             cursor?.use {
                 if (it.moveToFirst()) {
                     name = it.getString(0)
