@@ -63,6 +63,6 @@
         android:id="@+id/button_appointment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Завершить заказ" />
+        android:text="Завершить заявку" />
 
 </LinearLayout>
