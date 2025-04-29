@@ -25,6 +25,7 @@ class ApplicationDetailFragment(
     private val phone: String,
     private val date: String,
     private val time: String,
+    private val email: String
 ) : BottomSheetDialogFragment() {
 
 
@@ -37,20 +38,7 @@ class ApplicationDetailFragment(
 
         try {
             // Fill fields with application information
-            val titleTextView = view.findViewById<TextView>(R.id.title)
-            val nameTextView = view.findViewById<TextView>(R.id.name)
-            val surnameTextView = view.findViewById<TextView>(R.id.surname)
-            val phoneTextView = view.findViewById<TextView>(R.id.phone)
-            val dateTextView = view.findViewById<TextView>(R.id.date)
-            val timeTextView = view.findViewById<TextView>(R.id.time)
             val sendDataButton = view.findViewById<Button>(R.id.button_appointment)
-
-            titleTextView.text = "Услуга: $title"
-            nameTextView.text = "Имя заказчика: $name"
-            surnameTextView.text = "Фамилия заказчика: $surname"
-            phoneTextView.text = "Телефон: $phone"
-            dateTextView.text = "Дата заказа: $date"
-            timeTextView.text = "Время заказа: $time"
 
             sendDataButton.setOnClickListener {
                 sendDeleteRequest()
@@ -73,7 +61,7 @@ class ApplicationDetailFragment(
         this.deletionListener = listener
     }
     private fun sendDeleteRequest() {
-        val url = "https://decadances.ru/buy_tickets/admin_api/delete.php"
+        val url = "https://decadances.ru/buy_tickets/api/add_application/delete.php"
         Log.d(TAG, "Preparing request to: $url")
 
         val client = OkHttpClient()
@@ -86,6 +74,7 @@ class ApplicationDetailFragment(
             .add("phone", phone)
             .add("date", date)
             .add("time", time)
+            .add("email", email)
             .build()
 
         val request = okhttp3.Request.Builder()

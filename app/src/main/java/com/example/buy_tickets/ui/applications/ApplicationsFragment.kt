@@ -101,9 +101,9 @@ class ApplicationsFragment : Fragment(),
                     val phones = parseAndLogArray(jsonObject, "phone", "phones")
                     val dates = parseAndLogArray(jsonObject, "dates", "dates")
                     val times = parseAndLogArray(jsonObject, "times", "times")
-
+                    val email = parseAndLogArray(jsonObject, "email", "email")
                     // Проверка согласованности массивов
-                    if (!checkArraysConsistency(ids, serviceIds, productNames, firstNames, lastNames, phones, dates, times)) {
+                    if (!checkArraysConsistency(ids, serviceIds, productNames, firstNames, lastNames, phones, dates, times, email)) {
                         Log.e("PARSE_ERROR", "Arrays have inconsistent lengths")
                         return
                     }
@@ -114,7 +114,7 @@ class ApplicationsFragment : Fragment(),
                     logSampleData(ids, serviceIds, productNames, firstNames, lastNames, phones, dates, times)
 
                     activity?.runOnUiThread {
-                        displayPhotosInGrid(ids, serviceIds, productNames, firstNames, lastNames, phones, dates, times)
+                        displayPhotosInGrid(ids, serviceIds, productNames, firstNames, lastNames, phones, dates, times, email)
                     }
 
                 } catch (e: JSONException) {
@@ -215,7 +215,8 @@ class ApplicationsFragment : Fragment(),
         lastNames: List<String>,
         phones: List<String>,
         dates: List<String>,
-        times: List<String>
+        times: List<String>,
+        email: List<String>
     ) {
         if (activity == null || binding == null) {
             return
@@ -233,7 +234,8 @@ class ApplicationsFragment : Fragment(),
             lastNames.toMutableList(),
             phones.toMutableList(),
             dates.toMutableList(),
-            times.toMutableList()
+            times.toMutableList(),
+            email.toMutableList()
         )
         gridView.adapter = adapter
         gridView.setOnItemClickListener { parent, view, position, id ->
@@ -245,6 +247,7 @@ class ApplicationsFragment : Fragment(),
             val selectedPhone = phones[position]
             val selectedDate = dates[position]
             val selectedTime = times[position]
+            val selectedEmail = email[position]
             val bottomSheet = ApplicationDetailFragment(
                 requireContext(),
                 selectedUserId,
@@ -254,7 +257,8 @@ class ApplicationsFragment : Fragment(),
                 selectedLastName,
                 selectedPhone,
                 selectedDate,
-                selectedTime
+                selectedTime,
+                selectedEmail
             )
             bottomSheet.setDeletionListener(this) // Устанавливаем слушателя
             bottomSheet.show(parentFragmentManager, bottomSheet.tag)

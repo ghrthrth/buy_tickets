@@ -20,7 +20,8 @@ class ImageAdapter(
     private val mLastNames: MutableList<String>,
     private val mPhones: MutableList<String>,
     private val mDates: MutableList<String>,
-    private val mTimes: MutableList<String>
+    private val mTimes: MutableList<String>,
+    private val mEmail: MutableList<String>
 ) : BaseAdapter() {
 
     private val mInflater = LayoutInflater.from(mContext)
@@ -34,14 +35,14 @@ class ImageAdapter(
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val view = convertView ?: mInflater.inflate(R.layout.grid_item_applications, parent, false)
 
-        view.findViewById<TextView>(R.id.TITLE_text_view).text = "Продукт: ${mProductName[position]}"
+        view.findViewById<TextView>(R.id.TITLE_text_view).text = "Услуга: ${mProductName[position]}"
         view.findViewById<TextView>(R.id.NAME_text_view).text = "Имя: ${mFirstNames[position]}"
         view.findViewById<TextView>(R.id.SURNAME_text_view).text = "Фамилия: ${mLastNames[position]}"
         view.findViewById<TextView>(R.id.PHONE_text_view).text = "Телефон: ${mPhones[position]}"
         view.findViewById<TextView>(R.id.DATE_text_view).text = "Дата: ${mDates[position]}"
         view.findViewById<TextView>(R.id.TIME_text_view).text = "Время: ${mTimes[position]}"
 
-        view.findViewById<TextView>(R.id.PRODUCT_QUANTITY_text_view).visibility = View.GONE
+        view.findViewById<TextView>(R.id.EMAIL_text_view).text = "Email: ${mEmail[position]}"
 
         return view
     }

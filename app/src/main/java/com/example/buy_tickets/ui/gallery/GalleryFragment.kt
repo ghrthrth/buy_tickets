@@ -146,7 +146,7 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
     }
 
     private fun sendPurchaseData(productId: String, productName: String, firstName: String,
-                                 lastName: String, phone:String) {
+                                 lastName: String, phone:String, email:String) {
         val userId = userPreferences.getUserId() ?: ""
 
         // Создаем JSON-объект
@@ -161,6 +161,7 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
             format(Calendar.getInstance().time))
             put("times", SimpleDateFormat("HH:mm", Locale.getDefault()).
             format(Calendar.getInstance().time))
+            put("email", email)
         }
 
         // Создаем RequestBody с JSON
@@ -182,7 +183,8 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
             override fun onResponse(call: Call, response: Response) {
                 val responseText = response.body?.string() ?: "Пустой ответ"
                 activity?.runOnUiThread {
-                    Log.d("GalleryFragment", "Ответ сервера: $responseText")
+                    Toast.makeText(context, "Успешно: ${responseText}", Toast.LENGTH_SHORT).show()
+
                 }
             }
         })
@@ -333,10 +335,11 @@ class GalleryFragment : Fragment(), ProductDetailFragment.OnProductDeletedListen
         val firstName = registrationForm.findViewById<EditText>(R.id.etFirstName).text.toString()
         val lastName = registrationForm.findViewById<EditText>(R.id.etLastName).text.toString()
         val phone = registrationForm.findViewById<EditText>(R.id.etPhone).text.toString()
+        val email = registrationForm.findViewById<EditText>(R.id.etEmail).text.toString()
 
         // Проверка данных и отправка
-        if (firstName.isNotEmpty() && lastName.isNotEmpty() && phone.isNotEmpty()) {
-            sendPurchaseData(productIds, productTitles, firstName, lastName, phone)
+        if (firstName.isNotEmpty() && lastName.isNotEmpty() && phone.isNotEmpty() && email.isNotEmpty()) {
+            sendPurchaseData(productIds, productTitles, firstName, lastName, phone, email)
             Log.d("GalleryFragment", "ok")
             Log.d("GalleryFragment", "ok")
         } else {
