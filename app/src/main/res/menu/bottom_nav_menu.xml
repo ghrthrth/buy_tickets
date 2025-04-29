@@ -14,4 +14,8 @@
         android:id="@+id/nav_applications"
         android:icon="?android:attr/actionModeFindDrawable"
         android:title="Заявки" />
+    <item
+        android:id="@+id/nav_user_cabinet"
+        android:icon="?android:attr/actionModeFindDrawable"
+        android:title="Личный кабинет" />
 </menu>

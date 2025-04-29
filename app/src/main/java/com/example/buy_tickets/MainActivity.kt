@@ -2,6 +2,7 @@ package com.example.buy_tickets
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -10,6 +11,7 @@ import com.example.buy_tickets.ui.applications.ApplicationsFragment
 import com.example.buy_tickets.ui.create_services.CreateServicesFragment
 import com.example.buy_tickets.ui.gallery.GalleryFragment
 import com.example.buy_tickets.ui.user.UserPreferences
+import com.example.buy_tickets.ui.user_cabinet.UserCabinetFragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -84,10 +86,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupFragments() {
+        val userPrefs = UserPreferences(this)
+        val isAdmin = userPrefs.isAdmin()
+
         fragmentMap.apply {
-            put(R.id.nav_create_service, CreateServicesFragment())
+            // Общие фрагменты для всех
             put(R.id.nav_gallery, GalleryFragment())
-            put(R.id.nav_applications, ApplicationsFragment())
+            put(R.id.nav_user_cabinet, UserCabinetFragment())
+
+            // Фрагменты только для админов
+            if (isAdmin) {
+                put(R.id.nav_create_service, CreateServicesFragment())
+                put(R.id.nav_applications, ApplicationsFragment())
+            }
         }
     }
 
@@ -101,6 +112,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
+        val userPrefs = UserPreferences(this)
+        val isAdmin = userPrefs.isAdmin()
+
+        // Скрываем пункты меню для не-админов
+        if (!isAdmin) {
+            binding.bottomNavigation.menu.apply {
+                removeItem(R.id.nav_create_service)  // Скрыть "Создать услугу"
+                removeItem(R.id.nav_applications)     // Скрыть "Заявки"
+            }
+        }
+
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             if (currentFragmentId != item.itemId) {
                 navigateToFragment(item.itemId)
