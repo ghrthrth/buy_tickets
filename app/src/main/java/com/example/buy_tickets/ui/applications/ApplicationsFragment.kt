@@ -21,7 +21,8 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
-class ApplicationsFragment : Fragment() {
+class ApplicationsFragment : Fragment(),
+    ApplicationDetailFragment.OnApplicationDeletedListener {
 
     private var binding: FragmentApplicationsBinding? = null
     private val client = OkHttpClient()
@@ -37,6 +38,11 @@ class ApplicationsFragment : Fragment() {
 
         getPhotoUrlsFromServer()
         return root
+    }
+
+    override fun onApplicationDeleted() {
+        // Обновляем список заявок
+        getPhotoUrlsFromServer()
     }
 
     private fun addItemsToList(jsonArray: JSONArray, list: MutableList<String>) {
@@ -201,8 +207,7 @@ class ApplicationsFragment : Fragment() {
         """.trimIndent())
         }
     }
-
-    private fun displayPhotosInGrid(
+    fun displayPhotosInGrid(
         ids: List<String>,
         service_ids: List<String>,
         product_name: List<String>,
@@ -210,30 +215,55 @@ class ApplicationsFragment : Fragment() {
         lastNames: List<String>,
         phones: List<String>,
         dates: List<String>,
-        times: List<String>,
+        times: List<String>
     ) {
         if (activity == null || binding == null) {
-            return // Предотвращение краша, если фрагмент уничтожен
+            return
         }
-        if (!isAdded) return // Проверяем, не был ли фрагмент уничтожен
+        if (!isAdded) return
 
-        activity?.runOnUiThread {
-            if (binding == null) return@runOnUiThread // Проверяем повторно
-
-            val gridView = binding!!.gridView
-            val adapter = ImageAdapter(
+        // Создаем новый адаптер с обновленными данными
+        val gridView = binding!!.gridView
+        val adapter = ImageAdapter(
+            requireContext(),
+            ids.toMutableList(),
+            service_ids.toMutableList(),
+            product_name.toMutableList(),
+            firstNames.toMutableList(),
+            lastNames.toMutableList(),
+            phones.toMutableList(),
+            dates.toMutableList(),
+            times.toMutableList()
+        )
+        gridView.adapter = adapter
+        gridView.setOnItemClickListener { parent, view, position, id ->
+            val selectedUserId = ids[position]
+            val selectedServiceId = service_ids[position]
+            val selectedProductName = product_name[position]
+            val selectedFirstName = firstNames[position]
+            val selectedLastName = lastNames[position]
+            val selectedPhone = phones[position]
+            val selectedDate = dates[position]
+            val selectedTime = times[position]
+            val bottomSheet = ApplicationDetailFragment(
                 requireContext(),
-                ids as MutableList<String>,
-                service_ids as MutableList<String>,
-                product_name as MutableList<String>,
-                firstNames as MutableList<String>,
-                lastNames as MutableList<String>,
-                phones as MutableList<String>,
-                dates as MutableList<String>,
-                times as MutableList<String>
+                selectedUserId,
+                selectedServiceId,
+                selectedProductName,
+                selectedFirstName,
+                selectedLastName,
+                selectedPhone,
+                selectedDate,
+                selectedTime
             )
-            gridView.adapter = adapter
+            bottomSheet.setDeletionListener(this) // Устанавливаем слушателя
+            bottomSheet.show(parentFragmentManager, bottomSheet.tag)
         }
+    }
+
+    fun updateApplications() {
+        // Повторно запрашиваем данные с сервера
+        getPhotoUrlsFromServer()
     }
 
     override fun onDestroyView() {
